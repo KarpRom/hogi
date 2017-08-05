@@ -27,10 +27,15 @@ file(GLOB project_sources ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 file(GLOB project_includes ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp)
 
 ###=============== Include files =================================
-add_library(${PROJECT_NAME}
-            ${project_sources}
-            ${project_includes}
-            )
+# add_library(${PROJECT_NAME}
+#             ${project_sources}
+#             ${project_includes}
+#             )
+
+add_executable(${PROJECT_NAME}
+               ${project_sources}
+               ${project_includes}
+              )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
        "${CMAKE_CURRENT_SOURCE_DIR}/include"
@@ -42,4 +47,3 @@ target_link_libraries(${PROJECT_NAME}
   ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}
 )
-add_executable(${PROJECT_NAME}-bin src/hogi.cpp)
