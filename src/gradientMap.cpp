@@ -12,6 +12,8 @@ GradientMap::GradientMap(cv::Mat &im) {
   cv::imwrite("out/in.png", im);
 }
 
+GradientMap::~GradientMap() {}
+
 void GradientMap::gradients_map(cv::Mat &im) {
   // Compute gradients gx and gy
   for (unsigned int row = 0; row < im.rows - 1; row++)
@@ -70,3 +72,5 @@ void GradientMap::write_gradient_maps() {
   cv::imwrite("out/gradient_x.png", gmX);
   cv::imwrite("out/gradient_y.png", gmY);
 }
+
+cv::Mat &get_orientation_matrix() { return this->oriented_matrix; }
