@@ -1,5 +1,5 @@
 #include <iostream>
-#include <hogi/gradientMap.hpp>
+#include <hogi/gradient_map.hpp>
 
 int main(int argc, char **argv) {
   cv::Mat im = imread(argv[1], 0);
