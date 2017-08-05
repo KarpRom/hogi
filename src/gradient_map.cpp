@@ -73,4 +73,4 @@ void GradientMap::write_gradient_maps() {
   cv::imwrite("out/gradient_y.png", gmY);
 }
 
-cv::Mat &get_orientation_matrix() { return this->oriented_matrix; }
+cv::Mat &GradientMap::get_orientation_matrix() { return this->oriented_matrix; }
