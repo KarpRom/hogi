@@ -1,52 +1,54 @@
 #include "hogi/boundary_extraction.hpp"
 
-BoundaryExtraction::BoundaryExtraction(cv::Mat &mask) {
+BoundaryExtraction::BoundaryExtraction(cv::Mat mask) {
   this->mask = mask;
-  this->extractBoundary();
+  this->se = getStructuringElement(MORPH_RECT, Size(3, 3));
 }
 
 BoundaryExtraction::~BoundaryExtraction() {}
 
-pair<Contour, Contour> BoundaryExtraction::extractBoundary() {
-  // structuring element of size 3x3
-  cv::Mat element = getStructuringElement(MORPH_RECT, Size(3, 3));
-
-  // Outer boundary == dilation - original
+void BoundaryExtraction::extract_boundaries(pair<Contour, Contour> &contours) {
   Mat dilated;
   Mat eroded;
   Mat outer_boundary;
   Mat inner_boundary;
 
-  cv::erode(this->mask, dilated, element);
-  subtract(this->mask, dilated, outer_boundary);
+  contours.first.clear();
+  contours.second.clear();
 
-  // Inner boundary == original - erosion
-  cv::dilate(this->mask, eroded, element);
+  cv::erode(this->mask, dilated, this->se);
+  subtract(this->mask, dilated, outer_boundary);
+  cv::dilate(this->mask, eroded, this->se);
   subtract(eroded, this->mask, inner_boundary);
 
-  cv::imwrite("out/mask.png", this->mask);
-  cv::imwrite("out/dilated.png", dilated);
-  cv::imwrite("out/eroded.png", eroded);
-  cv::imwrite("out/outer_boundary.png", outer_boundary);
-  cv::imwrite("out/inner_boundary.png", inner_boundary);
+  cv::imwrite("outer_boundary.png", outer_boundary);
+  cv::imwrite("inner_boundary.png", inner_boundary);
 
-  return mat_boundary_to_list(outer_boundary, inner_boundary);
+  mat_boundary_to_list(outer_boundary, inner_boundary, contours);
 }
 
-pair<Contour, Contour>
-BoundaryExtraction::mat_boundary_to_list(cv::Mat &outer_boundary,
-                                         cv::Mat &inner_boundary) {
-  Contour inner_contour, outer_contour;
-  for (size_t row = 0; row < outer_boundary.rows; row++)
-    for (size_t col = 0; col < outer_boundary.cols; col++) {
-      if (outer_boundary.at<uchar>(row, col) == 255)
-        outer_contour.push_back(Point(col, row));
-      if (inner_boundary.at<uchar>(row, col) == 255)
-        inner_contour.push_back(Point(col, row));
+void BoundaryExtraction::mat_boundary_to_list(
+    cv::Mat &outer_boundary, cv::Mat &inner_boundary,
+    pair<Contour, Contour> &contours) {
+  for (int row = 0; row < outer_boundary.rows; row++)
+    for (int col = 0; col < outer_boundary.cols; col++) {
+      if (outer_boundary.at<uchar>(row, col) != MASK_TARGET)
+        contours.first.push_back(Point(col, row));
+      if (inner_boundary.at<uchar>(row, col) != MASK_TARGET)
+        contours.second.push_back(Point(col, row));
     }
+  cout << "Size of outer contour " << contours.first.size() << endl;
+  cout << "Size of inner contour " << contours.second.size() << endl;
 }
 
-void BoundaryExtraction::setContour(Contour &c) {
-  for (size_t i = 0; i < c.size(); i++)
-    this->mask.at<uchar>(c[i].y, c[i].x) = 255;
+void BoundaryExtraction::update_mask(Point &p) {
+  this->mask.at<uchar>(p.y, p.x) = MASK_SOURCE;
+}
+
+cv::Mat BoundaryExtraction::mask_patch(cv::Rect &roi) {
+  return this->mask(roi);
+}
+
+bool BoundaryExtraction::is_target(cv::Point &p) {
+  return this->mask.at<uchar>(p.y, p.x) == MASK_TARGET;
 }
